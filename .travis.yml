@@ -1,0 +1,20 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t 2dazed/react-tests -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run 2dazed/react-tests npm test -- --coverage
+
+after_success:
+  - docker build -t 2dazed/multi-client ./client
+  - docker build -t 2dazed/multi-server ./server
+  - docker build -t 2dazed/multi-nginx ./nginx
+  - docker build -t 2dazed/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push 2dazed/multi-client
+  - docker push 2dazed/multi-server
+  - docker push 2dazed/multi-nginx
+  - docker push 2dazed/multi-worker
